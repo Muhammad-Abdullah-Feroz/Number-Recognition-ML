@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="8x8 Pixel Editor for Number Prediction using personally trained model. Click and drag to draw, right-click to erase.">
+    <title>Number Predicter</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1998/1998695.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        canvas {
+            border: 2px solid #000;
+            image-rendering: pixelated;
+            margin-bottom: 10px;
+            cursor: crosshair;
+        }
+
+        button {
+            margin: 10px;
+            padding: 8px 20px;
+            font-size: 16px;
+        }
+
+        pre {
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>8x8 Pixel Editor (Click & Drag to Draw)</h2>
+    <canvas id="pixelCanvas" width="320" height="320"></canvas><br>
+    <button onclick="clearGrid()">Clear</button>
+    <button onclick="sendPixels()">Predict</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        const canvas = document.getElementById("pixelCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const gridSize = 8;
+        const maxIntensity = 16;
+        const cellSize = canvas.width / gridSize;
+        const pixelData = Array(gridSize * gridSize).fill(0);
+
+        let isDrawing = false;
+        let isRightClick = false;
+
+        // Prevent context menu on right-click
+        canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+        canvas.addEventListener("mousedown", (e) => {
+            isDrawing = true;
+            isRightClick = e.button === 2;
+            handleDraw(e);
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (isDrawing) handleDraw(e);
+        });
+
+        canvas.addEventListener("mouseup", () => (isDrawing = false));
+        canvas.addEventListener("mouseleave", () => (isDrawing = false));
+
+        function handleDraw(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / cellSize);
+            const y = Math.floor((e.clientY - rect.top) / cellSize);
+            const index = y * gridSize + x;
+
+            if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+                if (isRightClick) {
+                    if (pixelData[index] > 0) pixelData[index]--;
+                } else {
+                    if (pixelData[index] < maxIntensity) pixelData[index]++;
+                }
+                drawGrid();
+            }
+        }
+
+        function drawGrid() {
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const index = y * gridSize + x;
+                    const value = pixelData[index];
+                    const gray = 255 - Math.round((value / maxIntensity) * 255);
+                    ctx.fillStyle = `rgb(${gray},${gray},${gray})`;
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+
+                    // Optional: draw subtle grid lines
+                    ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+                    ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                }
+            }
+        }
+
+        function clearGrid() {
+            pixelData.fill(0);
+            drawGrid();
+            document.getElementById("output").textContent = "";
+        }
+
+        function sendPixels() {
+            // Replace this with actual API call
+            console.log(pixelData);
+            const matrix = [];
+            for (let i = 0; i < 8; i++) {
+                matrix.push(pixelData.slice(i * 8, (i + 1) * 8));
+            }
+
+            // const outputText = matrix.map(row => row.join(" ")).join(" |\n| ");
+            // document.getElementById("output").textContent = `Pixels: \n| ${outputText}\nPrediction: [Mocked]`;
+
+            async function fetchPrediction() {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pixels: pixelData })
+                });
+                const data = await response.json();
+                console.log("Pixels : " ,data);
+                // document.getElementById("output").textContent = `Pixels: \n| ${matrix.map(row => row.join(" ")).join(" |\n| ")}\nPrediction: ${data.prediction}`;
+            }
+            
+        }
+
+        drawGrid(); // initial render
+    </script>
+</body>
+
+</html>
