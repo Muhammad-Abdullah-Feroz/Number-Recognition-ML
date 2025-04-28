@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="8x8 Pixel Editor for Number Prediction using personally trained model. Click and drag to draw, right-click to erase.">
+    <meta name="description"
+        content="8x8 Pixel Editor for Number Prediction using personally trained model. Click and drag to draw, right-click to erase.">
     <title>Number Predicter</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1998/1998695.png" type="image/x-icon">
     <style>
@@ -111,28 +113,26 @@
             document.getElementById("output").textContent = "";
         }
 
-        function sendPixels() {
+        async function sendPixels() {
             // Replace this with actual API call
-            console.log(pixelData);
-            const matrix = [];
-            for (let i = 0; i < 8; i++) {
-                matrix.push(pixelData.slice(i * 8, (i + 1) * 8));
-            }
+            // console.log(pixelData);
+            // const matrix = [];
+            // for (let i = 0; i < 8; i++) {
+            //     matrix.push(pixelData.slice(i * 8, (i + 1) * 8));
+            // }
 
             // const outputText = matrix.map(row => row.join(" ")).join(" |\n| ");
             // document.getElementById("output").textContent = `Pixels: \n| ${outputText}\nPrediction: [Mocked]`;
 
-            async function fetchPrediction() {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pixels: pixelData })
-                });
-                const data = await response.json();
-                console.log("Pixels : " ,data);
-                // document.getElementById("output").textContent = `Pixels: \n| ${matrix.map(row => row.join(" ")).join(" |\n| ")}\nPrediction: ${data.prediction}`;
-            }
-            
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pixels: pixelData })
+            });
+            const data = await response.json();
+            console.log("Pixels : ", data);
+            // document.getElementById("output").textContent = `Pixels: \n| ${matrix.map(row => row.join(" ")).join(" |\n| ")}\nPrediction: ${data.prediction}`;
         }
 
         drawGrid(); // initial render
