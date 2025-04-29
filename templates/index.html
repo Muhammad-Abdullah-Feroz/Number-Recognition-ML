@@ -5,47 +5,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="8x8 Pixel Editor for Number Prediction using personally trained model. Click and drag to draw, right-click to erase.">
-    <title>Number Predicter</title>
+        content="8x8 Pixel Editor for Number Prediction using a personally trained model. Click and drag to draw, right-click to erase.">
+    <title>Number Predictor</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1998/1998695.png" type="image/x-icon">
     <style>
+        :root {
+            --primary-color: #2196F3;
+            --secondary-color: #1e1e2f;
+            --text-color: #e0e0e0;
+            --button-hover: #1976D2;
+            --background-color: #0a0f1c;
+        }
+        
+
         body {
-            font-family: sans-serif;
-            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             margin-top: 30px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: var(--primary-color);
         }
 
         canvas {
-            border: 2px solid #000;
+            /* border: 3px  solid var(--primary-color); */
             image-rendering: pixelated;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             cursor: crosshair;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         button {
-            margin: 10px;
-            padding: 8px 20px;
+            padding: 10px 25px;
             font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
-        pre {
-            text-align: left;
-            max-width: 600px;
-            margin: 0 auto;
-            background: #f4f4f4;
-            padding: 10px;
+        button:hover {
+            background-color: var(--button-hover);
+        }
+
+        #output {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            background-color: #1a1a2e;
+            padding: 15px 20px;
             border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.15);
+            max-width: 300px;
+            text-align: center;
+        }
+
+        #aiBackground {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #061122, #0c2040, #122d5a);
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #aaa;
         }
     </style>
 </head>
 
 <body>
-    <h2>8x8 Pixel Editor (Click & Drag to Draw)</h2>
-    <canvas id="pixelCanvas" width="320" height="320"></canvas><br>
-    <button onclick="clearGrid()">Clear</button>
-    <button onclick="sendPixels()">Predict</button>
+    <canvas id="aiBackground"></canvas>
 
-    <pre id="output"></pre>
+    <h2>🖌️ 8x8 Pixel Editor — Number Predictor</h2>
+    <canvas id="pixelCanvas" width="320" height="320"></canvas>
+
+    <div class="button-group">
+        <button onclick="clearGrid()">Clear</button>
+        <button onclick="sendPixels()">Predict</button>
+    </div>
+
+    <div id="output">Draw a number to predict</div>
+
+    <footer>Right-click to erase a pixel | Max intensity: 16</footer>
 
     <script>
         const canvas = document.getElementById("pixelCanvas");
@@ -59,7 +122,6 @@
         let isDrawing = false;
         let isRightClick = false;
 
-        // Prevent context menu on right-click
         canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
         canvas.addEventListener("mousedown", (e) => {
@@ -96,12 +158,11 @@
                 for (let x = 0; x < gridSize; x++) {
                     const index = y * gridSize + x;
                     const value = pixelData[index];
-                    const gray = 255 - Math.round((value / maxIntensity) * 255);
-                    ctx.fillStyle = `rgb(${gray},${gray},${gray})`;
+                    const darkBlue = Math.round(255 - (value / maxIntensity) * 200);
+                    ctx.fillStyle = `rgb(${darkBlue}, ${darkBlue}, 255)`;
                     ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
-                    // Optional: draw subtle grid lines
-                    ctx.strokeStyle = "rgba(0, 0, 0, 0.1)";
+                    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
                     ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
                 }
             }
@@ -110,33 +171,101 @@
         function clearGrid() {
             pixelData.fill(0);
             drawGrid();
-            document.getElementById("output").textContent = "";
+            document.getElementById("output").textContent = "Draw a number to predict";
         }
 
         async function sendPixels() {
-            // Replace this with actual API call
-            // console.log(pixelData);
-            // const matrix = [];
-            // for (let i = 0; i < 8; i++) {
-            //     matrix.push(pixelData.slice(i * 8, (i + 1) * 8));
-            // }
-
-            // const outputText = matrix.map(row => row.join(" ")).join(" |\n| ");
-            // document.getElementById("output").textContent = `Pixels: \n| ${outputText}\nPrediction: [Mocked]`;
-
-
             const response = await fetch('/predict', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pixels: pixelData })
             });
+
             const data = await response.json();
-            console.log("Pixels : ", data);
-            // document.getElementById("output").textContent = `Pixels: \n| ${matrix.map(row => row.join(" ")).join(" |\n| ")}\nPrediction: ${data.prediction}`;
+            document.getElementById("output").textContent = `🧠 Number Recognized: ${data[0]}`;
         }
 
-        drawGrid(); // initial render
+        drawGrid();
+    </script>
+
+    <script>
+        const canvasAI = document.getElementById("aiBackground");
+        const ctxAI = canvasAI.getContext("2d");
+
+        function resizeCanvas() {
+            canvasAI.width = window.innerWidth;
+            canvasAI.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        const nodes = [];
+        const numNodes = 80;
+
+        class Node {
+            constructor() {
+                this.x = Math.random() * canvasAI.width;
+                this.y = Math.random() * canvasAI.height;
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = (Math.random() - 0.5) * 1;
+                this.radius = Math.random() * 2 + 1.5;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvasAI.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvasAI.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctxAI.beginPath();
+                ctxAI.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctxAI.fillStyle = "#00ccff";
+                ctxAI.fill();
+            }
+        }
+
+        function initNodes() {
+            for (let i = 0; i < numNodes; i++) {
+                nodes.push(new Node());
+            }
+        }
+
+        function drawConnections() {
+            for (let i = 0; i < numNodes; i++) {
+                for (let j = i + 1; j < numNodes; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 160) {
+                        ctxAI.beginPath();
+                        ctxAI.moveTo(nodes[i].x, nodes[i].y);
+                        ctxAI.lineTo(nodes[j].x, nodes[j].y);
+                        ctxAI.strokeStyle = `rgba(0, 204, 255, ${1 - dist / 160})`;
+                        ctxAI.lineWidth = 1;
+                        ctxAI.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctxAI.clearRect(0, 0, canvasAI.width, canvasAI.height);
+
+            nodes.forEach(node => {
+                node.update();
+                node.draw();
+            });
+
+            drawConnections();
+            requestAnimationFrame(animate);
+        }
+
+        initNodes();
+        animate();
     </script>
 </body>
-
 </html>
