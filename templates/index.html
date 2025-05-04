@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="8x8 Pixel Editor for Number Prediction using a personally trained model. Click and drag to draw, right-click to erase.">
+    <meta name="description" content="8x8 Pixel Editor for Number Prediction using a personally trained model. Click and drag to draw, right-click to erase.">
     <title>Number Predictor</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1998/1998695.png" type="image/x-icon">
     <style>
@@ -16,7 +15,6 @@
             --button-hover: #1976D2;
             --background-color: #0a0f1c;
         }
-        
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,7 +34,6 @@
         }
 
         canvas {
-            /* border: 3px  solid var(--primary-color); */
             image-rendering: pixelated;
             margin-bottom: 20px;
             cursor: crosshair;
@@ -63,6 +60,18 @@
 
         button:hover {
             background-color: var(--button-hover);
+        }
+
+        select {
+            padding: 10px;
+            text-align: center;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.15);
+            margin-bottom: 20px;
         }
 
         #output {
@@ -100,6 +109,13 @@
 
     <h2>🖌️ 8x8 Pixel Editor — Number Predictor</h2>
     <canvas id="pixelCanvas" width="320" height="320"></canvas>
+
+    <select id="modelSelector">
+        <option value="svc">SVC Model</option>
+        <option value="lr">Logistic Regression</option>
+        <option value="nb">Naive Bayes</option>
+        <option value="knn">KNN Model</option>
+    </select>
 
     <div class="button-group">
         <button onclick="clearGrid()">Clear</button>
@@ -175,7 +191,8 @@
         }
 
         async function sendPixels() {
-            const response = await fetch('/predict', {
+            const selectedModel = document.getElementById("modelSelector").value;
+            const response = await fetch(`/predict-${selectedModel}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pixels: pixelData })
