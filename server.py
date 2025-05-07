@@ -7,6 +7,7 @@ SVC = joblib.load("./Models/SVC_model.pkl")
 KNN = joblib.load("./Models/KNN_model.pkl")
 LR = joblib.load("./Models/LR_model.pkl")
 NB = joblib.load("./Models/NaiveBayes_model.pkl")
+RF = joblib.load("./Models/RF_model.pkl")
 
 app = Flask(__name__)
 CORS(app)
@@ -73,6 +74,22 @@ def predictNB():
         # print(f"Feature list shape: {feature_array.shape}")
         # print(f"Feature list: {feature_array}")
         prediction = NB.predict(feature_array)
+        return jsonify(prediction.tolist())
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 400
+    
+    
+@app.route("/predict-rf", methods = ['POST'])
+def predictRF():
+    try:
+        data = request.get_json()
+        feature_list = data["pixels"]
+        
+        feature_array = np.array(feature_list).reshape(1, -1)
+        # print(f"Feature list shape: {feature_array.shape}")
+        # print(f"Feature list: {feature_array}")
+        prediction = RF.predict(feature_array)
         return jsonify(prediction.tolist())
     except Exception as e:
         print(f"Error: {e}")
